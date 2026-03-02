@@ -40,6 +40,7 @@ export function ExamsPage() {
     venueCapacity: 100,
     invigilators: [] as string[],
     chiefInvigilator: '',
+    status: 'SCHEDULED',
   });
 
   const fetchExams = async () => {
@@ -115,6 +116,7 @@ export function ExamsPage() {
         venueCapacity: exam.venue?.capacity || 100,
         invigilators: invigilatorIds,
         chiefInvigilator: chiefInvigilatorId,
+        status: exam.status || 'SCHEDULED',
       });
     } else {
       setEditingExam(null);
@@ -133,6 +135,7 @@ export function ExamsPage() {
         venueCapacity: 100,
         invigilators: [],
         chiefInvigilator: '',
+        status: 'SCHEDULED',
       });
     }
     setIsModalOpen(true);
@@ -146,7 +149,7 @@ export function ExamsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const dataToSend = {
+      const dataToSend: any = {
         examCode: formData.examCode,
         title: formData.title,
         examScheduleId: formData.examScheduleId,
@@ -165,7 +168,9 @@ export function ExamsPage() {
         chiefInvigilator: formData.chiefInvigilator || undefined,
       };
 
+      // Include status when editing
       if (editingExam) {
+        dataToSend.status = formData.status;
         await examsApi.update(editingExam._id, dataToSend);
         toast.success('Exam updated successfully');
       } else {
@@ -429,6 +434,19 @@ export function ExamsPage() {
               />
             </div>
           </div>
+          {editingExam && (
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Exam Status</h4>
+              <div className="w-64">
+                <Select
+                  label="Status"
+                  options={statusOptions.filter(opt => opt.value !== '')}
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
           <div className="border-t pt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Invigilators</h4>
             <div className="grid grid-cols-2 gap-4">
