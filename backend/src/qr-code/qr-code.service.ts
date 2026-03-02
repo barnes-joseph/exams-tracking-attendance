@@ -27,7 +27,7 @@ export class QrCodeService {
     studentId: string,
     indexNumber: string,
     examCode: string,
-    expiryMinutes: number = 30,
+    expiryMinutes: number = 10080, // 1 week (7 days)
   ): Promise<QRCodeToken> {
     // Validate all required fields are present
     if (!examAssignmentId || !examId || !studentId || !indexNumber) {

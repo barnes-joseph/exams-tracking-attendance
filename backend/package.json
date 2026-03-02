@@ -9,6 +9,7 @@
     "start:dev": "ts-node src/main.ts",
     "start:prod": "node dist/main.js",
     "seed": "ts-node src/database/seeder.ts",
+    "update-passwords": "ts-node src/database/update-passwords.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
