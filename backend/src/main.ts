@@ -1,19 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Controller, Get } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
-// Health check controller
-@Controller()
-class HealthController {
-  @Get('health')
-  health() {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      service: 'exam-attendance-api',
-    };
-  }
-}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -40,9 +27,9 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   
-  // Register health check controller (outside /api prefix)
-  const healthController = app.get(HealthController);
-  app.use('/health', (req, res) => {
+  // Health check endpoint (outside /api prefix) - use Express directly
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (req, res) => {
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
