@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as QRCode from 'qrcode';
 import { QRCodeToken, QRCodeTokenDocument } from './qr-code.schema';
 
-interface QrTokenPayload {
+export interface QrTokenPayload {
   assignmentId: string;
   studentId: string;
   examId: string;
