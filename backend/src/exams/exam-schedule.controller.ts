@@ -9,6 +9,20 @@ import { RolesGuard, Roles } from '../auth/roles.guard';
 export class ExamScheduleController {
   constructor(private readonly examScheduleService: ExamScheduleService) {}
 
+  @Post(':id/generate-qr-codes')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async generateQrCodes(@Param('id') id: string, @Request() req) {
+    return this.examScheduleService.generateQrCodes(id, req.user?.id);
+  }
+
+  @Post(':id/send-qr-codes')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async sendQrCodes(@Param('id') id: string, @Request() req) {
+    return this.examScheduleService.sendQrCodes(id, req.user?.id);
+  }
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles('ADMIN')

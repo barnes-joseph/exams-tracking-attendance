@@ -13,6 +13,8 @@ export function ExamSchedulesPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -114,22 +116,28 @@ export function ExamSchedulesPage() {
   };
 
   const handleGenerateQrCodes = async (id: string) => {
+    setGeneratingId(id);
     try {
       await examSchedulesApi.generateQrCodes(id);
       toast.success('QR codes generated successfully');
       fetchSchedules();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to generate QR codes');
+    } finally {
+      setGeneratingId(null);
     }
   };
 
   const handleSendQrCodes = async (id: string) => {
+    setSendingId(id);
     try {
       await examSchedulesApi.sendQrCodes(id);
       toast.success('QR codes sent to students successfully');
       fetchSchedules();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to send QR codes');
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -166,16 +174,39 @@ export function ExamSchedulesPage() {
     {
       key: 'qrStatus',
       header: 'QR Codes',
-      render: (schedule: ExamSchedule) => (
-        <div className="flex space-x-1">
-          <Badge variant={schedule.qrCodesGenerated ? 'green' : 'gray'} size="sm">
-            {schedule.qrCodesGenerated ? 'Generated' : 'Not Generated'}
-          </Badge>
-          {schedule.qrCodesSent && (
-            <Badge variant="blue" size="sm">Sent</Badge>
-          )}
-        </div>
-      ),
+      render: (schedule: ExamSchedule) => {
+        const isGenerating = generatingId === schedule._id;
+        const isSending = sendingId === schedule._id;
+        
+        if (isGenerating) {
+          return (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <span className="text-sm text-blue-600">Generating...</span>
+            </div>
+          );
+        }
+        
+        if (isSending) {
+          return (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              <span className="text-sm text-blue-600">Sending...</span>
+            </div>
+          );
+        }
+        
+        return (
+          <div className="flex space-x-1">
+            <Badge variant={schedule.qrCodesGenerated ? 'green' : 'gray'} size="sm">
+              {schedule.qrCodesGenerated ? 'Generated' : 'Not Generated'}
+            </Badge>
+            {schedule.qrCodesSent && (
+              <Badge variant="blue" size="sm">Sent</Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'actions',
@@ -184,8 +215,8 @@ export function ExamSchedulesPage() {
         const menuItems: DropdownMenuItem[] = [
           { label: 'Edit', onClick: () => handleOpenModal(schedule) },
           { label: 'Publish', onClick: () => handlePublish(schedule._id), variant: 'success', hidden: schedule.status !== 'DRAFT' },
-          { label: 'Generate QR Codes', onClick: () => handleGenerateQrCodes(schedule._id), hidden: schedule.status === 'DRAFT' || schedule.qrCodesGenerated },
-          { label: 'Send QR Codes', onClick: () => handleSendQrCodes(schedule._id), hidden: !schedule.qrCodesGenerated || schedule.qrCodesSent },
+          { label: 'Generate QR Codes', onClick: () => handleGenerateQrCodes(schedule._id), hidden: schedule.status === 'DRAFT' },
+          { label: 'Send QR Codes', onClick: () => handleSendQrCodes(schedule._id), hidden: !schedule.qrCodesGenerated },
           { label: 'Delete', onClick: () => handleDelete(schedule._id), variant: 'danger' },
         ];
         return <DropdownMenu items={menuItems} />;

@@ -15,6 +15,7 @@ import { ExamAssignmentController } from './exam-assignment.controller';
 
 import { Attendance, AttendanceSchema } from '../attendance/attendance.schema';
 import { Enrollment, EnrollmentSchema } from '../enrollments/enrollment.schema';
+import { QRCodeModule } from '../qr-code/qr-code.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Enrollment, EnrollmentSchema } from '../enrollments/enrollment.schema';
       { name: Attendance.name, schema: AttendanceSchema },
       { name: Enrollment.name, schema: EnrollmentSchema },
     ]),
+    forwardRef(() => QRCodeModule),
   ],
   controllers: [
     ExamsController,
