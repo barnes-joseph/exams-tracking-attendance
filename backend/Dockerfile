@@ -19,6 +19,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Debug: Show what was built
+RUN echo "=== Build output ===" && ls -la dist/ && echo "=== Main.js requires ===" && head -20 dist/main.js
+
 # Stage 2: Production stage
 FROM node:20-alpine AS production
 
@@ -36,6 +39,9 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Verify the dist folder was copied
+RUN echo "=== Production dist folder ===" && ls -la dist/
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
