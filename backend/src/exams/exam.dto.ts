@@ -1,5 +1,5 @@
 import { IsString, IsDateString, IsOptional, IsArray, IsNumber, IsEnum, IsMongoId, IsBoolean, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 class VenueDto {
   @IsString()
@@ -62,6 +62,7 @@ export class CreateExamDto {
   @IsOptional()
   @IsArray()
   @IsMongoId({ each: true })
+  @Transform(({ value }) => value?.filter((id: any) => id !== null && id !== undefined && id !== '') || [])
   invigilators?: string[];
 
   @IsOptional()
