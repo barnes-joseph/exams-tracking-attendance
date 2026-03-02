@@ -1,9 +1,10 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import apiClient from '../../api/client';
 import type { Exam } from '../../types';
-import { Button, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Button, Badge, getStatusVariant } from '../../components/common';
 
 interface ExamAssignmentWithQR {
   _id: string;
@@ -18,7 +19,6 @@ export function QRCodePage() {
   const [assignment, setAssignment] = useState<ExamAssignmentWithQR | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export function QRCodePage() {
           setQrDataUrl(dataUrl);
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch exam assignment');
+        toast.error(err.response?.data?.message || 'Failed to fetch exam assignment');
       } finally {
         setIsLoading(false);
       }
@@ -122,11 +122,16 @@ export function QRCodePage() {
     );
   }
 
-  if (error || !assignment) {
+  if (!assignment) {
     return (
-      <div className="max-w-md mx-auto">
-        <Alert variant="error">{error || 'Exam assignment not found'}</Alert>
-        <Link to="/student" className="mt-4 inline-block text-blue-600 hover:underline">
+      <div className="max-w-md mx-auto text-center py-12">
+        <div className="text-red-500 mb-4">
+          <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <p className="text-gray-600 mb-4">Exam assignment not found</p>
+        <Link to="/student" className="text-blue-600 hover:underline">
           Back to Dashboard
         </Link>
       </div>

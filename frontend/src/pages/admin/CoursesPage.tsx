@@ -1,7 +1,8 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { coursesApi, departmentsApi, programsApi } from '../../api/academic';
 import type { Course, Department, Program } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert } from '../../components/common';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -15,8 +16,6 @@ export function CoursesPage() {
   const [filterDepartmentId, setFilterDepartmentId] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     code: '',
@@ -43,7 +42,7 @@ export function CoursesPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch courses');
+      toast.error('Failed to fetch courses');
     } finally {
       setIsLoading(false);
     }
@@ -121,15 +120,15 @@ export function CoursesPage() {
       }
       if (editingCourse) {
         await coursesApi.update(editingCourse._id, dataToSend);
-        setSuccess('Course updated successfully');
+        toast.success('Course updated successfully');
       } else {
         await coursesApi.create(dataToSend);
-        setSuccess('Course created successfully');
+        toast.success('Course created successfully');
       }
       handleCloseModal();
       fetchCourses();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save course');
+      toast.error(err.response?.data?.message || 'Failed to save course');
     }
   };
 
@@ -137,10 +136,10 @@ export function CoursesPage() {
     if (!confirm('Are you sure you want to delete this course?')) return;
     try {
       await coursesApi.delete(id);
-      setSuccess('Course deleted successfully');
+      toast.success('Course deleted successfully');
       fetchCourses();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete course');
+      toast.error(err.response?.data?.message || 'Failed to delete course');
     }
   };
 
@@ -198,17 +197,14 @@ export function CoursesPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (course: Course) => (
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(course)}>
-            Edit
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(course._id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (course: Course) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'Edit', onClick: () => handleOpenModal(course) },
+          { label: 'Delete', onClick: () => handleDelete(course._id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -218,20 +214,7 @@ export function CoursesPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Courses</h1>
         <Button onClick={() => handleOpenModal()}>Add Course</Button>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      <div className="mb-4 flex gap-4">
+<div className="mb-4 flex gap-4">
         <div className="flex-1">
           <Input
             placeholder="Search courses..."
@@ -256,9 +239,7 @@ export function CoursesPage() {
           isLoading={isLoading}
           emptyMessage="No courses found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingCourse ? 'Edit Course' : 'Add Course'} size="lg">

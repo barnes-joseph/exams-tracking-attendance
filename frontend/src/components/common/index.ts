@@ -6,3 +6,4 @@ export { Table, Pagination } from './Table';
 export { Badge, getStatusVariant } from './Badge';
 export { LoadingSpinner, FullPageSpinner } from './LoadingSpinner';
 export { Alert } from './Alert';
+export { DropdownMenu, type DropdownMenuItem } from './DropdownMenu';

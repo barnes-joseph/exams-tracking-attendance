@@ -14,11 +14,13 @@ export class CollegeController {
   }
 
   @Get()
-  findAll(
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('isActive') isActive?: string,
     @Query('search') search?: string,
   ) {
-    return this.collegeService.findAll({
+    return this.collegeService.findAllPaginated(page, limit, {
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       search,
     });

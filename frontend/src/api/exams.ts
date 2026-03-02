@@ -3,8 +3,18 @@ import type { Exam, ExamSchedule, ExamAssignment, PaginatedResponse } from '../t
 
 // Exam Schedules API
 export const examSchedulesApi = {
-  getAll: async (params?: { page?: number; limit?: number; status?: string; academicYear?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<ExamSchedule>>('/exam-schedules', { params });
+  getAll: async (params?: { page?: number; limit?: number; status?: string; academicYear?: string }): Promise<PaginatedResponse<ExamSchedule>> => {
+    const response = await apiClient.get<ExamSchedule[] | PaginatedResponse<ExamSchedule>>('/exam-schedules', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -19,7 +29,7 @@ export const examSchedulesApi = {
   },
 
   update: async (id: string, data: Partial<ExamSchedule>) => {
-    const response = await apiClient.put<ExamSchedule>(`/exam-schedules/${id}`, data);
+    const response = await apiClient.patch<ExamSchedule>(`/exam-schedules/${id}`, data);
     return response.data;
   },
 
@@ -45,8 +55,18 @@ export const examSchedulesApi = {
 
 // Exams API
 export const examsApi = {
-  getAll: async (params?: { page?: number; limit?: number; examScheduleId?: string; courseId?: string; status?: string; date?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<Exam>>('/exams', { params });
+  getAll: async (params?: { page?: number; limit?: number; examScheduleId?: string; courseId?: string; status?: string; date?: string }): Promise<PaginatedResponse<Exam>> => {
+    const response = await apiClient.get<Exam[] | PaginatedResponse<Exam>>('/exams', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -61,7 +81,7 @@ export const examsApi = {
   },
 
   update: async (id: string, data: Partial<Exam>) => {
-    const response = await apiClient.put<Exam>(`/exams/${id}`, data);
+    const response = await apiClient.patch<Exam>(`/exams/${id}`, data);
     return response.data;
   },
 
@@ -92,8 +112,18 @@ export const examsApi = {
 
 // Exam Assignments API
 export const examAssignmentsApi = {
-  getAll: async (params?: { examId?: string; studentId?: string; status?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<ExamAssignment>>('/exam-assignments', { params });
+  getAll: async (params?: { examId?: string; studentId?: string; status?: string }): Promise<PaginatedResponse<ExamAssignment>> => {
+    const response = await apiClient.get<ExamAssignment[] | PaginatedResponse<ExamAssignment>>('/exam-assignments', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -103,7 +133,7 @@ export const examAssignmentsApi = {
   },
 
   update: async (id: string, data: Partial<ExamAssignment>) => {
-    const response = await apiClient.put<ExamAssignment>(`/exam-assignments/${id}`, data);
+    const response = await apiClient.patch<ExamAssignment>(`/exam-assignments/${id}`, data);
     return response.data;
   },
 

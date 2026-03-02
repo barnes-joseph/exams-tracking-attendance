@@ -10,8 +10,18 @@ export const enrollmentsApi = {
     academicYear?: string;
     semester?: number;
     status?: string;
-  }) => {
-    const response = await apiClient.get<PaginatedResponse<Enrollment>>('/enrollments', { params });
+  }): Promise<PaginatedResponse<Enrollment>> => {
+    const response = await apiClient.get<Enrollment[] | PaginatedResponse<Enrollment>>('/enrollments', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -41,7 +51,7 @@ export const enrollmentsApi = {
   },
 
   update: async (id: string, data: Partial<Enrollment>) => {
-    const response = await apiClient.put<Enrollment>(`/enrollments/${id}`, data);
+    const response = await apiClient.patch<Enrollment>(`/enrollments/${id}`, data);
     return response.data;
   },
 

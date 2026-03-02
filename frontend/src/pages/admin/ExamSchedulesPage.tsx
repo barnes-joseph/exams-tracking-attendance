@@ -1,7 +1,8 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { examSchedulesApi } from '../../api/exams';
 import type { ExamSchedule } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, getStatusVariant, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function ExamSchedulesPage() {
   const [schedules, setSchedules] = useState<ExamSchedule[]>([]);
@@ -12,8 +13,6 @@ export function ExamSchedulesPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,7 +35,7 @@ export function ExamSchedulesPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch exam schedules');
+      toast.error('Failed to fetch exam schedules');
     } finally {
       setIsLoading(false);
     }
@@ -81,15 +80,15 @@ export function ExamSchedulesPage() {
     try {
       if (editingSchedule) {
         await examSchedulesApi.update(editingSchedule._id, formData);
-        setSuccess('Exam schedule updated successfully');
+        toast.success('Exam schedule updated successfully');
       } else {
         await examSchedulesApi.create(formData);
-        setSuccess('Exam schedule created successfully');
+        toast.success('Exam schedule created successfully');
       }
       handleCloseModal();
       fetchSchedules();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save exam schedule');
+      toast.error(err.response?.data?.message || 'Failed to save exam schedule');
     }
   };
 
@@ -97,40 +96,40 @@ export function ExamSchedulesPage() {
     if (!confirm('Are you sure you want to delete this exam schedule?')) return;
     try {
       await examSchedulesApi.delete(id);
-      setSuccess('Exam schedule deleted successfully');
+      toast.success('Exam schedule deleted successfully');
       fetchSchedules();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete exam schedule');
+      toast.error(err.response?.data?.message || 'Failed to delete exam schedule');
     }
   };
 
   const handlePublish = async (id: string) => {
     try {
       await examSchedulesApi.publish(id);
-      setSuccess('Exam schedule published successfully');
+      toast.success('Exam schedule published successfully');
       fetchSchedules();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to publish exam schedule');
+      toast.error(err.response?.data?.message || 'Failed to publish exam schedule');
     }
   };
 
   const handleGenerateQrCodes = async (id: string) => {
     try {
       await examSchedulesApi.generateQrCodes(id);
-      setSuccess('QR codes generated successfully');
+      toast.success('QR codes generated successfully');
       fetchSchedules();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate QR codes');
+      toast.error(err.response?.data?.message || 'Failed to generate QR codes');
     }
   };
 
   const handleSendQrCodes = async (id: string) => {
     try {
       await examSchedulesApi.sendQrCodes(id);
-      setSuccess('QR codes sent to students successfully');
+      toast.success('QR codes sent to students successfully');
       fetchSchedules();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send QR codes');
+      toast.error(err.response?.data?.message || 'Failed to send QR codes');
     }
   };
 
@@ -180,32 +179,17 @@ export function ExamSchedulesPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (schedule: ExamSchedule) => (
-        <div className="flex flex-wrap gap-1">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(schedule)}>
-            Edit
-          </Button>
-          {schedule.status === 'DRAFT' && (
-            <Button size="sm" variant="success" onClick={() => handlePublish(schedule._id)}>
-              Publish
-            </Button>
-          )}
-          {schedule.status !== 'DRAFT' && !schedule.qrCodesGenerated && (
-            <Button size="sm" variant="outline" onClick={() => handleGenerateQrCodes(schedule._id)}>
-              Gen QR
-            </Button>
-          )}
-          {schedule.qrCodesGenerated && !schedule.qrCodesSent && (
-            <Button size="sm" variant="outline" onClick={() => handleSendQrCodes(schedule._id)}>
-              Send QR
-            </Button>
-          )}
-          <Button size="sm" variant="danger" onClick={() => handleDelete(schedule._id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (schedule: ExamSchedule) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'Edit', onClick: () => handleOpenModal(schedule) },
+          { label: 'Publish', onClick: () => handlePublish(schedule._id), variant: 'success', hidden: schedule.status !== 'DRAFT' },
+          { label: 'Generate QR Codes', onClick: () => handleGenerateQrCodes(schedule._id), hidden: schedule.status === 'DRAFT' || schedule.qrCodesGenerated },
+          { label: 'Send QR Codes', onClick: () => handleSendQrCodes(schedule._id), hidden: !schedule.qrCodesGenerated || schedule.qrCodesSent },
+          { label: 'Delete', onClick: () => handleDelete(schedule._id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -215,20 +199,7 @@ export function ExamSchedulesPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Exam Schedules</h1>
         <Button onClick={() => handleOpenModal()}>Create Schedule</Button>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      <div className="mb-4">
+<div className="mb-4">
         <Select
           options={statusOptions}
           value={filterStatus}
@@ -244,9 +215,7 @@ export function ExamSchedulesPage() {
           isLoading={isLoading}
           emptyMessage="No exam schedules found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingSchedule ? 'Edit Exam Schedule' : 'Create Exam Schedule'} size="lg">

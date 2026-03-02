@@ -1,10 +1,11 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { attendanceApi } from '../../api/attendance';
 import { examsApi } from '../../api/exams';
 import type { Exam, Student, Attendance } from '../../types';
-import { Button, Modal, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Button, Modal, Badge, getStatusVariant } from '../../components/common';
 
 interface ScanResult {
   success: boolean;
@@ -19,7 +20,6 @@ export function ScannerPage() {
   const [exam, setExam] = useState<Exam | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [recentScans, setRecentScans] = useState<ScanResult[]>([]);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
@@ -31,7 +31,7 @@ export function ScannerPage() {
         const data = await examsApi.getById(examId);
         setExam(data);
       } catch (err) {
-        setError('Failed to fetch exam details');
+        toast.error('Failed to fetch exam details');
       }
     };
     fetchExam();
@@ -58,7 +58,7 @@ export function ScannerPage() {
 
       setIsScanning(true);
     } catch (err) {
-      setError('Failed to start camera. Please check camera permissions.');
+      toast.error('Failed to start camera. Please check camera permissions.');
     }
   };
 
@@ -81,7 +81,7 @@ export function ScannerPage() {
       setRecentScans((prev) => [result, ...prev.slice(0, 9)]);
       setIsVerificationModalOpen(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to process QR code');
+      toast.error(err.response?.data?.message || 'Failed to process QR code');
       // Resume scanning after error
       setTimeout(() => {
         startScanning();
@@ -131,16 +131,7 @@ export function ScannerPage() {
           </span>
         </div>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Scanner */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Scan QR Code</h2>

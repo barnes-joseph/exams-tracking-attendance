@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { examSchedulesApi } from '../../api/exams';
 import apiClient from '../../api/client';
 import type { ExamSchedule } from '../../types';
-import { Button, Select, Alert, Badge } from '../../components/common';
+import { Button, Select, Badge } from '../../components/common';
 
 interface DashboardStats {
   totalStudents: number;
@@ -33,7 +34,6 @@ export function ReportsPage() {
   const [attendanceReport, setAttendanceReport] = useState<AttendanceReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isReportLoading, setIsReportLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -45,7 +45,7 @@ export function ReportsPage() {
         setStats(statsRes.data);
         setSchedules(schedulesRes.data);
       } catch (err) {
-        setError('Failed to fetch report data');
+        toast.error('Failed to fetch report data');
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +60,7 @@ export function ReportsPage() {
       const response = await apiClient.get(`/reports/exam-schedule/${selectedScheduleId}/attendance`);
       setAttendanceReport(response.data);
     } catch (err) {
-      setError('Failed to fetch attendance report');
+      toast.error('Failed to fetch attendance report');
     } finally {
       setIsReportLoading(false);
     }
@@ -88,8 +88,9 @@ export function ReportsPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      toast.success('Report exported successfully');
     } catch (err) {
-      setError('Failed to export report');
+      toast.error('Failed to export report');
     }
   };
 
@@ -107,8 +108,9 @@ export function ReportsPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      toast.success('Report exported successfully');
     } catch (err) {
-      setError('Failed to export report');
+      toast.error('Failed to export report');
     }
   };
 
@@ -123,12 +125,6 @@ export function ReportsPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-900 mb-6">Reports</h1>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
 
       {/* Overview Stats */}
       <div className="mb-8">

@@ -58,6 +58,51 @@ export class ProgramService {
       .exec();
   }
 
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 10,
+    query?: {
+      isActive?: boolean;
+      departmentId?: string;
+      degreeType?: string;
+      search?: string;
+    },
+  ): Promise<{ data: Program[]; total: number; page: number; limit: number; totalPages: number }> {
+    const filter: any = {};
+
+    if (query?.isActive !== undefined) {
+      filter.isActive = query.isActive;
+    }
+
+    if (query?.departmentId) {
+      filter.departmentId = new Types.ObjectId(query.departmentId);
+    }
+
+    if (query?.degreeType) {
+      filter.degreeType = query.degreeType;
+    }
+
+    if (query?.search) {
+      filter.$or = [
+        { name: { $regex: query.search, $options: 'i' } },
+        { code: { $regex: query.search, $options: 'i' } },
+        { abbreviation: { $regex: query.search, $options: 'i' } },
+      ];
+    }
+
+    const total = await this.programModel.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
+    const data = await this.programModel
+      .find(filter)
+      .populate('departmentId')
+      .sort({ name: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return { data, total, page, limit, totalPages };
+  }
+
   async findOne(id: string): Promise<Program> {
     const program = await this.programModel
       .findById(id)

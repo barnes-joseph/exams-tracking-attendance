@@ -1,8 +1,9 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { studentsApi } from '../../api/students';
 import { programsApi } from '../../api/academic';
 import type { Student, Program } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, getStatusVariant, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -18,8 +19,6 @@ export function StudentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     indexNumber: '',
@@ -53,7 +52,7 @@ export function StudentsPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch students');
+      toast.error('Failed to fetch students');
     } finally {
       setIsLoading(false);
     }
@@ -145,15 +144,15 @@ export function StudentsPage() {
 
       if (editingStudent) {
         await studentsApi.update(editingStudent.id, dataToSend);
-        setSuccess('Student updated successfully');
+        toast.success('Student updated successfully');
       } else {
         await studentsApi.create(dataToSend);
-        setSuccess('Student created successfully');
+        toast.success('Student created successfully');
       }
       handleCloseModal();
       fetchStudents();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save student');
+      toast.error(err.response?.data?.message || 'Failed to save student');
     }
   };
 
@@ -161,10 +160,10 @@ export function StudentsPage() {
     if (!confirm('Are you sure you want to delete this student?')) return;
     try {
       await studentsApi.delete(id);
-      setSuccess('Student deleted successfully');
+      toast.success('Student deleted successfully');
       fetchStudents();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete student');
+      toast.error(err.response?.data?.message || 'Failed to delete student');
     }
   };
 
@@ -174,20 +173,20 @@ export function StudentsPage() {
     const fileInput = formElement.querySelector('input[type="file"]') as HTMLInputElement;
     const file = fileInput?.files?.[0];
     if (!file) {
-      setError('Please select a file');
+      toast.error('Please select a file');
       return;
     }
 
     try {
       const result = await studentsApi.bulkImport(file);
-      setSuccess(`Successfully imported ${result.imported} students`);
+      toast.success(`Successfully imported ${result.imported} students`);
       if (result.errors.length > 0) {
-        setError(`Errors: ${result.errors.join(', ')}`);
+        toast.error(`Errors: ${result.errors.join(', ')}`);
       }
       setIsImportModalOpen(false);
       fetchStudents();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to import students');
+      toast.error(err.response?.data?.message || 'Failed to import students');
     }
   };
 
@@ -219,17 +218,14 @@ export function StudentsPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (student: Student) => (
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(student)}>
-            Edit
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(student.id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (student: Student) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'Edit', onClick: () => handleOpenModal(student) },
+          { label: 'Delete', onClick: () => handleDelete(student.id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -268,20 +264,7 @@ export function StudentsPage() {
           <Button onClick={() => handleOpenModal()}>Add Student</Button>
         </div>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      <div className="mb-4 flex gap-4 flex-wrap">
+<div className="mb-4 flex gap-4 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <Input
             placeholder="Search by name or index number..."
@@ -320,9 +303,7 @@ export function StudentsPage() {
           isLoading={isLoading}
           emptyMessage="No students found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       {/* Add/Edit Student Modal */}

@@ -14,12 +14,14 @@ export class DepartmentController {
   }
 
   @Get()
-  findAll(
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('isActive') isActive?: string,
     @Query('collegeId') collegeId?: string,
     @Query('search') search?: string,
   ) {
-    return this.departmentService.findAll({
+    return this.departmentService.findAllPaginated(page, limit, {
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       collegeId,
       search,

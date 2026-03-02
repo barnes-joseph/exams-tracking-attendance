@@ -3,8 +3,18 @@ import type { College, Department, Program, Course, PaginatedResponse } from '..
 
 // Colleges API
 export const collegesApi = {
-  getAll: async (params?: { page?: number; limit?: number; search?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<College>>('/colleges', { params });
+  getAll: async (params?: { page?: number; limit?: number; search?: string }): Promise<PaginatedResponse<College>> => {
+    const response = await apiClient.get<College[] | PaginatedResponse<College>>('/colleges', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -19,7 +29,7 @@ export const collegesApi = {
   },
 
   update: async (id: string, data: Partial<College>) => {
-    const response = await apiClient.put<College>(`/colleges/${id}`, data);
+    const response = await apiClient.patch<College>(`/colleges/${id}`, data);
     return response.data;
   },
 
@@ -30,8 +40,18 @@ export const collegesApi = {
 
 // Departments API
 export const departmentsApi = {
-  getAll: async (params?: { page?: number; limit?: number; search?: string; collegeId?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<Department>>('/departments', { params });
+  getAll: async (params?: { page?: number; limit?: number; search?: string; collegeId?: string }): Promise<PaginatedResponse<Department>> => {
+    const response = await apiClient.get<Department[] | PaginatedResponse<Department>>('/departments', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -46,7 +66,7 @@ export const departmentsApi = {
   },
 
   update: async (id: string, data: Partial<Department>) => {
-    const response = await apiClient.put<Department>(`/departments/${id}`, data);
+    const response = await apiClient.patch<Department>(`/departments/${id}`, data);
     return response.data;
   },
 
@@ -57,8 +77,18 @@ export const departmentsApi = {
 
 // Programs API
 export const programsApi = {
-  getAll: async (params?: { page?: number; limit?: number; search?: string; departmentId?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<Program>>('/programs', { params });
+  getAll: async (params?: { page?: number; limit?: number; search?: string; departmentId?: string }): Promise<PaginatedResponse<Program>> => {
+    const response = await apiClient.get<Program[] | PaginatedResponse<Program>>('/programs', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -73,7 +103,7 @@ export const programsApi = {
   },
 
   update: async (id: string, data: Partial<Program>) => {
-    const response = await apiClient.put<Program>(`/programs/${id}`, data);
+    const response = await apiClient.patch<Program>(`/programs/${id}`, data);
     return response.data;
   },
 
@@ -84,8 +114,18 @@ export const programsApi = {
 
 // Courses API
 export const coursesApi = {
-  getAll: async (params?: { page?: number; limit?: number; search?: string; departmentId?: string; programId?: string }) => {
-    const response = await apiClient.get<PaginatedResponse<Course>>('/courses', { params });
+  getAll: async (params?: { page?: number; limit?: number; search?: string; departmentId?: string; programId?: string }): Promise<PaginatedResponse<Course>> => {
+    const response = await apiClient.get<Course[] | PaginatedResponse<Course>>('/courses', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -100,7 +140,7 @@ export const coursesApi = {
   },
 
   update: async (id: string, data: Partial<Course>) => {
-    const response = await apiClient.put<Course>(`/courses/${id}`, data);
+    const response = await apiClient.patch<Course>(`/courses/${id}`, data);
     return response.data;
   },
 

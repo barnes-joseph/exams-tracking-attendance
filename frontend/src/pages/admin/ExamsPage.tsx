@@ -1,9 +1,11 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { examsApi, examSchedulesApi } from '../../api/exams';
 import { coursesApi } from '../../api/academic';
 import { usersApi } from '../../api/users';
-import type { Exam, ExamSchedule, Course, User } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert, getStatusVariant } from '../../components/common';
+import { enrollmentsApi } from '../../api/enrollments';
+import type { Exam, ExamSchedule, Course, User, ExamAssignment, Student, Enrollment } from '../../types';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, getStatusVariant, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function ExamsPage() {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -18,8 +20,10 @@ export function ExamsPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [examStudents, setExamStudents] = useState<{ assigned: ExamAssignment[]; enrolled: Enrollment[] }>({ assigned: [], enrolled: [] });
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
 
   const [formData, setFormData] = useState({
     examCode: '',
@@ -51,7 +55,7 @@ export function ExamsPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch exams');
+      toast.error('Failed to fetch exams');
     } finally {
       setIsLoading(false);
     }
@@ -163,15 +167,15 @@ export function ExamsPage() {
 
       if (editingExam) {
         await examsApi.update(editingExam._id, dataToSend);
-        setSuccess('Exam updated successfully');
+        toast.success('Exam updated successfully');
       } else {
         await examsApi.create(dataToSend);
-        setSuccess('Exam created successfully');
+        toast.success('Exam created successfully');
       }
       handleCloseModal();
       fetchExams();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save exam');
+      toast.error(err.response?.data?.message || 'Failed to save exam');
     }
   };
 
@@ -179,20 +183,47 @@ export function ExamsPage() {
     if (!confirm('Are you sure you want to delete this exam?')) return;
     try {
       await examsApi.delete(id);
-      setSuccess('Exam deleted successfully');
+      toast.success('Exam deleted successfully');
       fetchExams();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete exam');
+      toast.error(err.response?.data?.message || 'Failed to delete exam');
     }
   };
 
   const handleAutoAssign = async (id: string) => {
     try {
       await examsApi.autoAssignStudents(id);
-      setSuccess('Students auto-assigned successfully');
+      toast.success('Students auto-assigned successfully');
       fetchExams();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to auto-assign students');
+      toast.error(err.response?.data?.message || 'Failed to auto-assign students');
+    }
+  };
+
+  const handleViewStudents = async (exam: Exam) => {
+    setSelectedExam(exam);
+    setIsStudentsModalOpen(true);
+    setIsLoadingStudents(true);
+
+    try {
+      // Get the course ID
+      const courseId = typeof exam.courseId === 'string' ? exam.courseId : (exam.courseId as Course)._id;
+
+      // Fetch both assigned students and enrolled students in parallel
+      const [assignmentsRes, enrollmentsRes] = await Promise.all([
+        examsApi.getAssignments(exam._id),
+        enrollmentsApi.getAll({ courseId, limit: 500 }),
+      ]);
+
+      setExamStudents({
+        assigned: assignmentsRes || [],
+        enrolled: enrollmentsRes.data || [],
+      });
+    } catch (err: any) {
+      toast.error('Failed to fetch students');
+      setExamStudents({ assigned: [], enrolled: [] });
+    } finally {
+      setIsLoadingStudents(false);
     }
   };
 
@@ -248,22 +279,16 @@ export function ExamsPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (exam: Exam) => (
-        <div className="flex flex-wrap gap-1">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(exam)}>
-            Edit
-          </Button>
-          {exam.totalAssignedStudents === 0 && (
-            <Button size="sm" variant="success" onClick={() => handleAutoAssign(exam._id)}>
-              Assign
-            </Button>
-          )}
-          <Button size="sm" variant="danger" onClick={() => handleDelete(exam._id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (exam: Exam) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'View Students', onClick: () => handleViewStudents(exam) },
+          { label: 'Edit', onClick: () => handleOpenModal(exam) },
+          { label: 'Auto-Assign Students', onClick: () => handleAutoAssign(exam._id), variant: 'success', hidden: exam.totalAssignedStudents > 0 },
+          { label: 'Delete', onClick: () => handleDelete(exam._id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -278,20 +303,7 @@ export function ExamsPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Exams</h1>
         <Button onClick={() => handleOpenModal()}>Add Exam</Button>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      <div className="mb-4 flex gap-4">
+<div className="mb-4 flex gap-4">
         <div className="w-64">
           <Select
             options={[{ value: '', label: 'All Schedules' }, ...(schedules || []).map(s => ({ value: s._id, label: s.name }))]}
@@ -316,9 +328,7 @@ export function ExamsPage() {
           isLoading={isLoading}
           emptyMessage="No exams found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingExam ? 'Edit Exam' : 'Add Exam'} size="xl">
@@ -455,6 +465,122 @@ export function ExamsPage() {
             <Button type="submit">{editingExam ? 'Update' : 'Create'}</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* View Students Modal */}
+      <Modal
+        isOpen={isStudentsModalOpen}
+        onClose={() => setIsStudentsModalOpen(false)}
+        title={`Students - ${selectedExam?.title || ''}`}
+        size="xl"
+      >
+        {isLoadingStudents ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-sm text-blue-600">Enrolled in Course</p>
+                <p className="text-2xl font-semibold text-blue-700">{examStudents.enrolled.length}</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-sm text-green-600">Assigned to Exam</p>
+                <p className="text-2xl font-semibold text-green-700">{examStudents.assigned.length}</p>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <p className="text-sm text-yellow-600">Not Yet Assigned</p>
+                <p className="text-2xl font-semibold text-yellow-700">
+                  {Math.max(0, examStudents.enrolled.length - examStudents.assigned.length)}
+                </p>
+              </div>
+            </div>
+
+            {/* Tabs for Assigned vs Enrolled */}
+            {examStudents.assigned.length > 0 ? (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Assigned Students ({examStudents.assigned.length})</h3>
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Index Number</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seat</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Room</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {examStudents.assigned.map((assignment) => {
+                        const student = assignment.studentId as Student;
+                        return (
+                          <tr key={assignment._id}>
+                            <td className="px-4 py-2 text-sm text-gray-900">{student?.indexNumber || '-'}</td>
+                            <td className="px-4 py-2 text-sm text-gray-900">
+                              {student ? `${student.firstName} ${student.lastName}` : '-'}
+                            </td>
+                            <td className="px-4 py-2 text-sm text-gray-500">{assignment.seatNumber || '-'}</td>
+                            <td className="px-4 py-2 text-sm text-gray-500">{assignment.room || '-'}</td>
+                            <td className="px-4 py-2 text-sm">
+                              <Badge variant={assignment.status === 'ASSIGNED' ? 'blue' : assignment.status === 'PRESENT' ? 'green' : 'gray'} size="sm">
+                                {assignment.status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Enrolled Students ({examStudents.enrolled.length})</h3>
+                <p className="text-sm text-gray-500 mb-3">
+                  These students are enrolled in the course and will be assigned when you click "Auto-Assign Students".
+                </p>
+                {examStudents.enrolled.length > 0 ? (
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Index Number</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Academic Year</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Semester</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {examStudents.enrolled.map((enrollment) => {
+                          const student = enrollment.studentId as Student;
+                          return (
+                            <tr key={enrollment._id}>
+                              <td className="px-4 py-2 text-sm text-gray-900">{student?.indexNumber || '-'}</td>
+                              <td className="px-4 py-2 text-sm text-gray-900">
+                                {student ? `${student.firstName} ${student.lastName}` : '-'}
+                              </td>
+                              <td className="px-4 py-2 text-sm text-gray-500">{enrollment.academicYear}</td>
+                              <td className="px-4 py-2 text-sm text-gray-500">Semester {enrollment.semester}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 py-8">No students enrolled in this course yet.</p>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsStudentsModalOpen(false)}>Close</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

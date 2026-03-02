@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { departmentsApi, collegesApi } from '../../api/academic';
 import type { Department, College } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert } from '../../components/common';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -14,8 +15,6 @@ export function DepartmentsPage() {
   const [filterCollegeId, setFilterCollegeId] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     code: '',
@@ -39,7 +38,7 @@ export function DepartmentsPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch departments');
+      toast.error('Failed to fetch departments');
     } finally {
       setIsLoading(false);
     }
@@ -93,15 +92,15 @@ export function DepartmentsPage() {
     try {
       if (editingDepartment) {
         await departmentsApi.update(editingDepartment._id, formData);
-        setSuccess('Department updated successfully');
+        toast.success('Department updated successfully');
       } else {
         await departmentsApi.create(formData);
-        setSuccess('Department created successfully');
+        toast.success('Department created successfully');
       }
       handleCloseModal();
       fetchDepartments();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save department');
+      toast.error(err.response?.data?.message || 'Failed to save department');
     }
   };
 
@@ -109,10 +108,10 @@ export function DepartmentsPage() {
     if (!confirm('Are you sure you want to delete this department?')) return;
     try {
       await departmentsApi.delete(id);
-      setSuccess('Department deleted successfully');
+      toast.success('Department deleted successfully');
       fetchDepartments();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete department');
+      toast.error(err.response?.data?.message || 'Failed to delete department');
     }
   };
 
@@ -143,17 +142,14 @@ export function DepartmentsPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (dept: Department) => (
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(dept)}>
-            Edit
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(dept._id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (dept: Department) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'Edit', onClick: () => handleOpenModal(dept) },
+          { label: 'Delete', onClick: () => handleDelete(dept._id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -163,18 +159,6 @@ export function DepartmentsPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Departments</h1>
         <Button onClick={() => handleOpenModal()}>Add Department</Button>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
 
       <div className="mb-4 flex gap-4">
         <div className="flex-1">
@@ -201,9 +185,7 @@ export function DepartmentsPage() {
           isLoading={isLoading}
           emptyMessage="No departments found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingDepartment ? 'Edit Department' : 'Add Department'} size="lg">

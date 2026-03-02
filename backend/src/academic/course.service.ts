@@ -85,6 +85,68 @@ export class CourseService {
       .exec();
   }
 
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 10,
+    query?: {
+      isActive?: boolean;
+      departmentId?: string;
+      programId?: string;
+      level?: number;
+      semester?: number;
+      isElective?: boolean;
+      search?: string;
+    },
+  ): Promise<{ data: Course[]; total: number; page: number; limit: number; totalPages: number }> {
+    const filter: any = {};
+
+    if (query?.isActive !== undefined) {
+      filter.isActive = query.isActive;
+    }
+
+    if (query?.departmentId) {
+      filter.departmentId = new Types.ObjectId(query.departmentId);
+    }
+
+    if (query?.programId) {
+      filter.programId = new Types.ObjectId(query.programId);
+    }
+
+    if (query?.level) {
+      filter.level = query.level;
+    }
+
+    if (query?.semester) {
+      filter.semester = query.semester;
+    }
+
+    if (query?.isElective !== undefined) {
+      filter.isElective = query.isElective;
+    }
+
+    if (query?.search) {
+      filter.$or = [
+        { name: { $regex: query.search, $options: 'i' } },
+        { code: { $regex: query.search, $options: 'i' } },
+        { lecturer: { $regex: query.search, $options: 'i' } },
+      ];
+    }
+
+    const total = await this.courseModel.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
+    const data = await this.courseModel
+      .find(filter)
+      .populate('departmentId')
+      .populate('programId')
+      .populate('prerequisites')
+      .sort({ code: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return { data, total, page, limit, totalPages };
+  }
+
   async findOne(id: string): Promise<Course> {
     const course = await this.courseModel
       .findById(id)

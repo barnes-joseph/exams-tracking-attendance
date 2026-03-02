@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../stores/authStore';
-import { Button, Input, Alert } from '../../components/common';
+import { Button, Input } from '../../components/common';
 
 export function StudentLoginPage() {
   const navigate = useNavigate();
@@ -9,13 +10,21 @@ export function StudentLoginPage() {
   const [indexNumber, setIndexNumber] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await studentLogin(indexNumber, password);
+      toast.success('Login successful!');
       navigate('/student');
     } catch {
-      // Error is handled by the store
+      // Error is handled by the store and shown via toast
     }
   };
 
@@ -30,12 +39,6 @@ export function StudentLoginPage() {
             Sign in with your student credentials
           </p>
         </div>
-
-        {error && (
-          <Alert variant="error" onClose={clearError}>
-            {error}
-          </Alert>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">

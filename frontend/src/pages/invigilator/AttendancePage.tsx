@@ -1,9 +1,10 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { attendanceApi } from '../../api/attendance';
 import { examsApi } from '../../api/exams';
 import type { Exam, Attendance, Student } from '../../types';
-import { Button, Input, Select, Table, Modal, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Button, Input, Select, Table, Modal, Badge, getStatusVariant } from '../../components/common';
 
 interface AttendanceWithStudent extends Attendance {
   studentId: Student;
@@ -14,8 +15,6 @@ export function AttendancePage() {
   const [exam, setExam] = useState<Exam | null>(null);
   const [attendanceList, setAttendanceList] = useState<AttendanceWithStudent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
   const [isManualMarkModalOpen, setIsManualMarkModalOpen] = useState(false);
@@ -41,7 +40,7 @@ export function AttendancePage() {
       setExam(examData);
       setAttendanceList(attendanceData as AttendanceWithStudent[]);
     } catch (err) {
-      setError('Failed to fetch data');
+      toast.error('Failed to fetch data');
     } finally {
       setIsLoading(false);
     }
@@ -59,12 +58,12 @@ export function AttendancePage() {
         examId,
         ...manualMarkData,
       });
-      setSuccess('Attendance marked successfully');
+      toast.success('Attendance marked successfully');
       setIsManualMarkModalOpen(false);
       setManualMarkData({ indexNumber: '', status: 'PRESENT', remarks: '' });
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to mark attendance');
+      toast.error(err.response?.data?.message || 'Failed to mark attendance');
     }
   };
 
@@ -73,13 +72,13 @@ export function AttendancePage() {
     if (!selectedAttendance) return;
     try {
       await attendanceApi.flag(selectedAttendance._id, flagReason);
-      setSuccess('Attendance flagged successfully');
+      toast.success('Attendance flagged successfully');
       setIsFlagModalOpen(false);
       setFlagReason('');
       setSelectedAttendance(null);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to flag attendance');
+      toast.error(err.response?.data?.message || 'Failed to flag attendance');
     }
   };
 
@@ -209,20 +208,7 @@ export function AttendancePage() {
           </Button>
         </div>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      {/* Stats cards */}
+{/* Stats cards */}
       <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">Total</p>

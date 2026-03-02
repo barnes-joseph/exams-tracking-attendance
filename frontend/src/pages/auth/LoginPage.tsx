@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../stores/authStore';
-import { Button, Input, Alert } from '../../components/common';
+import { Button, Input } from '../../components/common';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -9,13 +10,30 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/admin');
+      toast.success('Login successful!');
+
+      // Navigate based on user role
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (userData.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (userData.role === 'INVIGILATOR') {
+        navigate('/invigilator');
+      } else {
+        navigate('/admin');
+      }
     } catch {
-      // Error is handled by the store
+      // Error is handled by the store and shown via toast
     }
   };
 
@@ -30,12 +48,6 @@ export function LoginPage() {
             Sign in to your account
           </p>
         </div>
-
-        {error && (
-          <Alert variant="error" onClose={clearError}>
-            {error}
-          </Alert>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">

@@ -10,8 +10,18 @@ export const studentsApi = {
     departmentId?: string;
     level?: number;
     status?: string;
-  }) => {
-    const response = await apiClient.get<PaginatedResponse<Student>>('/students', { params });
+  }): Promise<PaginatedResponse<Student>> => {
+    const response = await apiClient.get<Student[] | PaginatedResponse<Student>>('/students', { params });
+    // Handle both array and paginated response formats
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        total: response.data.length,
+        page: 1,
+        limit: response.data.length,
+        totalPages: 1,
+      };
+    }
     return response.data;
   },
 
@@ -26,7 +36,7 @@ export const studentsApi = {
   },
 
   update: async (id: string, data: Partial<Student>) => {
-    const response = await apiClient.put<Student>(`/students/${id}`, data);
+    const response = await apiClient.patch<Student>(`/students/${id}`, data);
     return response.data;
   },
 

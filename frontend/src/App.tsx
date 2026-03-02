@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 
 // Layouts
 import { AdminLayout, InvigilatorLayout, StudentLayout } from './components/layout';
@@ -19,6 +20,7 @@ import {
   CoursesPage,
   StudentsPage,
   UsersPage,
+  EnrollmentsPage,
   ExamSchedulesPage,
   ExamsPage,
   ReportsPage,
@@ -48,6 +50,28 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            style: {
+              background: '#10B981',
+            },
+          },
+          error: {
+            duration: 5000,
+            style: {
+              background: '#EF4444',
+            },
+          },
+        }}
+      />
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
@@ -69,6 +93,7 @@ function App() {
             <Route path="programs" element={<ProgramsPage />} />
             <Route path="courses" element={<CoursesPage />} />
             <Route path="students" element={<StudentsPage />} />
+            <Route path="enrollments" element={<EnrollmentsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="exam-schedules" element={<ExamSchedulesPage />} />
             <Route path="exams" element={<ExamsPage />} />

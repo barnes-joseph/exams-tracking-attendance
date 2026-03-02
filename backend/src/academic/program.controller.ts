@@ -14,13 +14,15 @@ export class ProgramController {
   }
 
   @Get()
-  findAll(
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('isActive') isActive?: string,
     @Query('departmentId') departmentId?: string,
     @Query('degreeType') degreeType?: string,
     @Query('search') search?: string,
   ) {
-    return this.programService.findAll({
+    return this.programService.findAllPaginated(page, limit, {
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       departmentId,
       degreeType,

@@ -1,7 +1,8 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { usersApi } from '../../api/users';
 import type { User } from '../../types';
-import { Button, Input, Select, Table, Pagination, Modal, Badge, Alert } from '../../components/common';
+import { Button, Input, Select, Table, Pagination, Modal, Badge, DropdownMenu, type DropdownMenuItem } from '../../components/common';
 
 export function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -13,8 +14,6 @@ export function UsersPage() {
   const [filterRole, setFilterRole] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -38,7 +37,7 @@ export function UsersPage() {
       setTotalPages(response.totalPages);
       setTotal(response.total);
     } catch (err) {
-      setError('Failed to fetch users');
+      toast.error('Failed to fetch users');
     } finally {
       setIsLoading(false);
     }
@@ -91,15 +90,15 @@ export function UsersPage() {
 
       if (editingUser) {
         await usersApi.update(editingUser.id, dataToSend);
-        setSuccess('User updated successfully');
+        toast.success('User updated successfully');
       } else {
         await usersApi.create(dataToSend);
-        setSuccess('User created successfully');
+        toast.success('User created successfully');
       }
       handleCloseModal();
       fetchUsers();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save user');
+      toast.error(err.response?.data?.message || 'Failed to save user');
     }
   };
 
@@ -107,10 +106,10 @@ export function UsersPage() {
     if (!confirm('Are you sure you want to delete this user?')) return;
     try {
       await usersApi.delete(id);
-      setSuccess('User deleted successfully');
+      toast.success('User deleted successfully');
       fetchUsers();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete user');
+      toast.error(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -139,17 +138,14 @@ export function UsersPage() {
     { key: 'department', header: 'Department' },
     {
       key: 'actions',
-      header: 'Actions',
-      render: (user: User) => (
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={() => handleOpenModal(user)}>
-            Edit
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(user.id)}>
-            Delete
-          </Button>
-        </div>
-      ),
+      header: '',
+      render: (user: User) => {
+        const menuItems: DropdownMenuItem[] = [
+          { label: 'Edit', onClick: () => handleOpenModal(user) },
+          { label: 'Delete', onClick: () => handleDelete(user.id), variant: 'danger' },
+        ];
+        return <DropdownMenu items={menuItems} />;
+      },
     },
   ];
 
@@ -159,20 +155,7 @@ export function UsersPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
         <Button onClick={() => handleOpenModal()}>Add User</Button>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4">
-          <Alert variant="success" onClose={() => setSuccess(null)}>{success}</Alert>
-        </div>
-      )}
-
-      <div className="mb-4 flex gap-4">
+<div className="mb-4 flex gap-4">
         <div className="flex-1">
           <Input
             placeholder="Search users..."
@@ -197,9 +180,7 @@ export function UsersPage() {
           isLoading={isLoading}
           emptyMessage="No users found"
         />
-        {totalPages > 1 && (
-          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-        )}
+        <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? 'Edit User' : 'Add User'} size="md">

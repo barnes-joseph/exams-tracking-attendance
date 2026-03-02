@@ -1,8 +1,9 @@
+import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../../api/client';
 import type { Exam } from '../../types';
-import { Select, Badge, Alert, getStatusVariant } from '../../components/common';
+import { Select, Badge, getStatusVariant } from '../../components/common';
 
 interface ExamWithAssignment extends Exam {
   assignmentId: string;
@@ -14,7 +15,6 @@ interface ExamWithAssignment extends Exam {
 export function MyExamsPage() {
   const [exams, setExams] = useState<ExamWithAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filterPeriod, setFilterPeriod] = useState('upcoming');
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function MyExamsPage() {
         });
         setExams(response.data);
       } catch (err) {
-        setError('Failed to fetch exams');
+        toast.error('Failed to fetch exams');
       } finally {
         setIsLoading(false);
       }
@@ -60,14 +60,7 @@ export function MyExamsPage() {
           />
         </div>
       </div>
-
-      {error && (
-        <div className="mb-4">
-          <Alert variant="error" onClose={() => setError(null)}>{error}</Alert>
-        </div>
-      )}
-
-      {exams.length === 0 ? (
+{exams.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

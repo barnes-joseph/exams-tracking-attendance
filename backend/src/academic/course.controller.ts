@@ -14,7 +14,9 @@ export class CourseController {
   }
 
   @Get()
-  findAll(
+  async findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
     @Query('isActive') isActive?: string,
     @Query('departmentId') departmentId?: string,
     @Query('programId') programId?: string,
@@ -23,7 +25,7 @@ export class CourseController {
     @Query('isElective') isElective?: string,
     @Query('search') search?: string,
   ) {
-    return this.courseService.findAll({
+    return this.courseService.findAllPaginated(page, limit, {
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
       departmentId,
       programId,

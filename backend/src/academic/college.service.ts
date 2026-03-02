@@ -36,6 +36,36 @@ export class CollegeService {
     return this.collegeModel.find(filter).sort({ name: 1 }).exec();
   }
 
+  async findAllPaginated(
+    page: number = 1,
+    limit: number = 10,
+    query?: { isActive?: boolean; search?: string },
+  ): Promise<{ data: College[]; total: number; page: number; limit: number; totalPages: number }> {
+    const filter: any = {};
+
+    if (query?.isActive !== undefined) {
+      filter.isActive = query.isActive;
+    }
+
+    if (query?.search) {
+      filter.$or = [
+        { name: { $regex: query.search, $options: 'i' } },
+        { code: { $regex: query.search, $options: 'i' } },
+      ];
+    }
+
+    const total = await this.collegeModel.countDocuments(filter);
+    const totalPages = Math.ceil(total / limit);
+    const data = await this.collegeModel
+      .find(filter)
+      .sort({ name: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return { data, total, page, limit, totalPages };
+  }
+
   async findOne(id: string): Promise<College> {
     const college = await this.collegeModel.findById(id).exec();
     if (!college) {
