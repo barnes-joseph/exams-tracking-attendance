@@ -1,14 +1,33 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Controller, Get } from '@nestjs/common';
 import { AppModule } from './app.module';
+
+// Health check controller
+@Controller()
+class HealthController {
+  @Get('health')
+  health() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'exam-attendance-api',
+    };
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Enable CORS
+  // Enable CORS - allow all origins in production or configure as needed
+  const corsOrigin = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',') 
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:80', 'http://localhost'];
+  
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: corsOrigin,
     credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
   });
   
   // Global prefix
@@ -21,9 +40,20 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   
+  // Register health check controller (outside /api prefix)
+  const healthController = app.get(HealthController);
+  app.use('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'exam-attendance-api',
+    });
+  });
+  
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`Health check available at: http://localhost:${port}/health`);
 }
 
 bootstrap();
