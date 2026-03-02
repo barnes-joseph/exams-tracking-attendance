@@ -19,7 +19,6 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "ignoreDeprecations": "6.0",
     "types": ["node"]
   },
   "include": ["src/**/*"],
