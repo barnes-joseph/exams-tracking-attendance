@@ -28,8 +28,8 @@ WORKDIR /app
 # Set NODE_ENV
 ENV NODE_ENV=production
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from builder stage (includes package-lock.json)
+COPY --from=builder /app/package*.json ./
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
