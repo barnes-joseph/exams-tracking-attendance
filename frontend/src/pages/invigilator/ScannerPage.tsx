@@ -19,6 +19,7 @@ export function ScannerPage() {
   const navigate = useNavigate();
   const [exam, setExam] = useState<Exam | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [recentScans, setRecentScans] = useState<ScanResult[]>([]);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
@@ -30,7 +31,7 @@ export function ScannerPage() {
       try {
         const data = await examsApi.getById(examId);
         setExam(data);
-      } catch (err) {
+      } catch {
         toast.error('Failed to fetch exam details');
       }
     };
@@ -39,6 +40,7 @@ export function ScannerPage() {
     return () => {
       stopScanning();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examId]);
 
   const startScanning = async () => {
@@ -57,7 +59,7 @@ export function ScannerPage() {
       );
 
       setIsScanning(true);
-    } catch (err) {
+    } catch {
       toast.error('Failed to start camera. Please check camera permissions.');
     }
   };
@@ -73,6 +75,7 @@ export function ScannerPage() {
   const onScanSuccess = async (decodedText: string) => {
     // Pause scanning while processing
     await stopScanning();
+    setIsProcessing(true);
 
     try {
       if (!examId) return;
@@ -86,10 +89,12 @@ export function ScannerPage() {
       setTimeout(() => {
         startScanning();
       }, 2000);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const onScanFailure = (_error: string) => {
+  const onScanFailure = () => {
     // QR code not detected, continue scanning
   };
 
@@ -143,7 +148,18 @@ export function ScannerPage() {
               className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden"
             />
 
-            {!isScanning && (
+            {/* Processing overlay */}
+            {isProcessing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 rounded-lg z-10">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto"></div>
+                  <p className="mt-4 text-white font-medium">Processing QR Code...</p>
+                  <p className="text-sm text-gray-300">Verifying student attendance</p>
+                </div>
+              </div>
+            )}
+
+            {!isScanning && !isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
                 <div className="text-center">
                   <svg
