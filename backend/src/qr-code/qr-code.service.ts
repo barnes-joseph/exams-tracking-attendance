@@ -29,6 +29,14 @@ export class QrCodeService {
     examCode: string,
     expiryMinutes: number = 30,
   ): Promise<QRCodeToken> {
+    // Validate all required fields are present
+    if (!examAssignmentId || !examId || !studentId || !indexNumber) {
+      throw new BadRequestException(
+        `Missing required fields for QR code generation: ` +
+        `assignmentId=${examAssignmentId}, examId=${examId}, studentId=${studentId}, indexNumber=${indexNumber}`
+      );
+    }
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiryMinutes * 60 * 1000);
 
@@ -37,7 +45,7 @@ export class QrCodeService {
       studentId,
       examId,
       indexNumber,
-      examCode,
+      examCode: examCode || '',
       type: 'exam_qr',
     };
 
