@@ -29,7 +29,8 @@ export class AttendanceController {
       return {
         success: false,
         message: verification.message,
-        qrCodeToken: verification.qrCodeToken,
+        attendance: null,
+        student: null,
       };
     }
 
@@ -40,7 +41,8 @@ export class AttendanceController {
       return {
         success: false,
         message: 'Invalid QR code: missing required data in token',
-        qrCodeToken,
+        attendance: null,
+        student: qrCodeToken?.studentId || null,
       };
     }
 
@@ -63,17 +65,24 @@ export class AttendanceController {
       // Mark QR code as used
       await this.qrCodeService.markAsUsed(scanQrDto.token, scanQrDto.ipAddress, scanQrDto.deviceInfo);
 
+      // Fetch populated attendance record
+      const populatedAttendance = await this.attendanceService.findByExamAndStudent(
+        payload.examId,
+        payload.studentId,
+      );
+
       return {
         success: true,
         message: 'Attendance recorded successfully',
-        attendance,
+        attendance: populatedAttendance || attendance,
         student: qrCodeToken.studentId,
       };
     } catch (error) {
       return {
         success: false,
         message: error.message,
-        student: qrCodeToken.studentId,
+        attendance: null,
+        student: qrCodeToken?.studentId || null,
       };
     }
   }

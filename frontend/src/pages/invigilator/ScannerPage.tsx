@@ -9,8 +9,8 @@ import { Button, Modal, Badge, getStatusVariant } from '../../components/common'
 
 interface ScanResult {
   success: boolean;
-  student: Student;
-  attendance: Attendance;
+  student: Student | null;
+  attendance: Attendance | null;
   message: string;
 }
 
@@ -131,7 +131,8 @@ export function ScannerPage() {
           </span>
         </div>
       </div>
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Scanner */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Scan QR Code</h2>
@@ -197,10 +198,16 @@ export function ScannerPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {scan.student.firstName} {scan.student.lastName}
-                      </p>
-                      <p className="text-sm text-gray-500">{scan.student.indexNumber}</p>
+                      {scan.student ? (
+                        <>
+                          <p className="font-medium text-gray-900">
+                            {scan.student.firstName} {scan.student.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">{scan.student.indexNumber}</p>
+                        </>
+                      ) : (
+                        <p className="font-medium text-gray-900">Unknown Student</p>
+                      )}
                     </div>
                     <Badge variant={scan.success ? 'green' : 'red'}>
                       {scan.success ? 'Verified' : 'Failed'}
@@ -222,28 +229,38 @@ export function ScannerPage() {
       >
         {scanResult && (
           <div className="text-center">
-            {/* Student photo */}
-            <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
-              {scanResult.student.photo ? (
-                <img
-                  src={scanResult.student.photo}
-                  alt="Student"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
+            {scanResult.student ? (
+              <>
+                {/* Student photo */}
+                <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200">
+                  {scanResult.student.photo ? (
+                    <img
+                      src={scanResult.student.photo}
+                      alt="Student"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Student info */}
-            <h3 className="text-xl font-semibold text-gray-900">
-              {scanResult.student.firstName} {scanResult.student.lastName}
-            </h3>
-            <p className="text-gray-500">{scanResult.student.indexNumber}</p>
+                {/* Student info */}
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {scanResult.student.firstName} {scanResult.student.lastName}
+                </h3>
+                <p className="text-gray-500">{scanResult.student.indexNumber}</p>
+              </>
+            ) : (
+              <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+              </div>
+            )}
 
             {/* Status */}
             <div className="mt-4">
@@ -255,7 +272,7 @@ export function ScannerPage() {
               </Badge>
             </div>
 
-            {scanResult.attendance && (
+            {scanResult.attendance && scanResult.attendance.checkInTime && (
               <p className="mt-2 text-sm text-gray-500">
                 Check-in time: {new Date(scanResult.attendance.checkInTime).toLocaleTimeString()}
               </p>

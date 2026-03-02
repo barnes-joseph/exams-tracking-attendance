@@ -52,14 +52,14 @@ services:
           type: web
           property: url
           suffix: /api
-    # routes:
-    #   - type: rewrite
-    #     source: /*
-    #     destination: /index.html
-    # headers:
-    #   - path: /*
-    #     name: Cache-Control
-    #     value: public, max-age=31536000
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
 
 # Optional: Add a managed PostgreSQL if you want to migrate from MongoDB
 # databases:
