@@ -1,0 +1,10 @@
+export { AdminDashboard } from './Dashboard';
+export { CollegesPage } from './CollegesPage';
+export { DepartmentsPage } from './DepartmentsPage';
+export { ProgramsPage } from './ProgramsPage';
+export { CoursesPage } from './CoursesPage';
+export { StudentsPage } from './StudentsPage';
+export { UsersPage } from './UsersPage';
+export { ExamSchedulesPage } from './ExamSchedulesPage';
+export { ExamsPage } from './ExamsPage';
+export { ReportsPage } from './ReportsPage';
