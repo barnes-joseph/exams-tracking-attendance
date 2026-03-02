@@ -171,7 +171,7 @@ export function AttendancePage() {
   if (!exam) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -214,9 +214,9 @@ export function AttendancePage() {
           <p className="text-sm text-gray-500">Total</p>
           <p className="text-2xl font-semibold">{stats.total}</p>
         </div>
-        <div className="bg-green-50 rounded-lg shadow p-4">
-          <p className="text-sm text-green-600">Present</p>
-          <p className="text-2xl font-semibold text-green-700">{stats.present}</p>
+        <div className="bg-indigo-50 rounded-lg shadow p-4">
+          <p className="text-sm text-indigo-600">Present</p>
+          <p className="text-2xl font-semibold text-indigo-700">{stats.present}</p>
         </div>
         <div className="bg-red-50 rounded-lg shadow p-4">
           <p className="text-sm text-red-600">Absent</p>

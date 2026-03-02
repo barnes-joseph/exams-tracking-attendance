@@ -107,7 +107,7 @@ export function ScannerPage() {
   if (!exam) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export function ScannerPage() {
                 <li
                   key={index}
                   className={`p-3 rounded-lg ${
-                    scan.success ? 'bg-green-50' : 'bg-red-50'
+                    scan.success ? 'bg-indigo-50' : 'bg-red-50'
                   }`}
                 >
                   <div className="flex items-center justify-between">

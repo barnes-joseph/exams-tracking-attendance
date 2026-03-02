@@ -31,11 +31,11 @@ export function InvigilatorLayout() {
 
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-green-700 transform transition-transform lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-indigo-700 transform transition-transform lg:hidden ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-4 bg-green-800">
+        <div className="flex items-center justify-between h-16 px-4 bg-indigo-800">
           <span className="text-xl font-bold text-white">Invigilator</span>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -53,8 +53,8 @@ export function InvigilatorLayout() {
               to={item.href}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                 location.pathname === item.href
-                  ? 'bg-green-800 text-white'
-                  : 'text-green-100 hover:bg-green-600'
+                  ? 'bg-indigo-800 text-white'
+                  : 'text-indigo-100 hover:bg-indigo-600'
               }`}
               onClick={() => setSidebarOpen(false)}
             >
@@ -69,8 +69,8 @@ export function InvigilatorLayout() {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-1 bg-green-700">
-          <div className="flex items-center h-16 px-4 bg-green-800">
+        <div className="flex flex-col flex-1 bg-indigo-700">
+          <div className="flex items-center h-16 px-4 bg-indigo-800">
             <span className="text-xl font-bold text-white">Invigilator Portal</span>
           </div>
           <nav className="flex-1 mt-4 px-2 space-y-1 overflow-y-auto">
@@ -78,11 +78,11 @@ export function InvigilatorLayout() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  location.pathname === item.href
-                    ? 'bg-green-800 text-white'
-                    : 'text-green-100 hover:bg-green-600'
-                }`}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                location.pathname === item.href
+                  ? 'bg-indigo-800 text-white'
+                  : 'text-indigo-100 hover:bg-indigo-600'
+              }`}
               >
                 <svg className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
@@ -112,7 +112,7 @@ export function InvigilatorLayout() {
             </span>
             <button
               onClick={handleLogout}
-              className="px-3 py-1 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+              className="px-3 py-1 text-sm text-white bg-indigo-600 rounded hover:bg-indigo-700"
             >
               Logout
             </button>

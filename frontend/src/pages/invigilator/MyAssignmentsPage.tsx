@@ -72,7 +72,7 @@ export function MyAssignmentsPage() {
       header: 'Attendance',
       render: (exam: Exam) => (
         <span>
-          <span className="text-green-600 font-medium">{exam.presentCount}</span>
+          <span className="text-indigo-600 font-medium">{exam.presentCount}</span>
           <span className="text-gray-400"> / </span>
           <span>{exam.totalAssignedStudents}</span>
         </span>
@@ -93,7 +93,7 @@ export function MyAssignmentsPage() {
           {exam.status === 'IN_PROGRESS' && (
             <Link
               to={`/invigilator/scanner/${exam._id}`}
-              className="text-green-600 hover:text-green-800 text-sm font-medium"
+              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
             >
               Scan
             </Link>
@@ -165,9 +165,9 @@ export function MyAssignmentsPage() {
               {assignments.filter(a => a.status === 'IN_PROGRESS').length}
             </p>
           </div>
-          <div className="bg-green-50 rounded-lg shadow p-4">
-            <p className="text-sm text-green-600">Completed</p>
-            <p className="text-2xl font-semibold text-green-700">
+          <div className="bg-indigo-50 rounded-lg shadow p-4">
+            <p className="text-sm text-indigo-600">Completed</p>
+            <p className="text-2xl font-semibold text-indigo-700">
               {assignments.filter(a => a.status === 'COMPLETED').length}
             </p>
           </div>

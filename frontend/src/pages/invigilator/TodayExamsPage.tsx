@@ -26,7 +26,7 @@ export function TodayExamsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -121,7 +121,7 @@ function ExamCard({ exam, isOngoing = false, isCompleted = false }: { exam: Exam
           </div>
           <div className="mt-3 flex items-center space-x-4">
             <div className="flex items-center text-sm">
-              <span className="text-green-600 font-medium">{exam.presentCount}</span>
+              <span className="text-indigo-600 font-medium">{exam.presentCount}</span>
               <span className="text-gray-400 mx-1">/</span>
               <span className="text-gray-600">{exam.totalAssignedStudents}</span>
               <span className="text-gray-400 ml-1">present</span>
@@ -137,7 +137,7 @@ function ExamCard({ exam, isOngoing = false, isCompleted = false }: { exam: Exam
           {isOngoing && (
             <Link
               to={`/invigilator/scanner/${exam._id}`}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
