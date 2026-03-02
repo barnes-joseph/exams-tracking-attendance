@@ -9,8 +9,8 @@ interface ScanQrResponse {
 }
 
 export const attendanceApi = {
-  scanQr: async (token: string, examId: string) => {
-    const response = await apiClient.post<ScanQrResponse>('/attendance/scan-qr', { token, examId });
+  scanQr: async (token: string, _examId: string) => {
+    const response = await apiClient.post<ScanQrResponse>('/attendance/scan-qr', { token });
     return response.data;
   },
 
