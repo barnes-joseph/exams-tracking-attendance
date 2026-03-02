@@ -35,6 +35,15 @@ export class AttendanceController {
 
     const { qrCodeToken, payload } = verification;
 
+    // Validate payload has required fields
+    if (!payload || !payload.examId || !payload.studentId || !payload.indexNumber) {
+      return {
+        success: false,
+        message: 'Invalid QR code: missing required data in token',
+        qrCodeToken,
+      };
+    }
+
     try {
       // Record attendance
       const attendance = await this.attendanceService.recordAttendance(
